@@ -6,6 +6,9 @@
         $data = $connexion->prepare('SELECT * FROM users WHERE session_ID = ?');
         $data->execute(array($_COOKIE['user_id']));
         $userdata = $data->fetch();
+        $stores = $connexion->prepare('SELECT * FROM stores WHERE user_id = ?');
+        $stores->execute(array($userdata['id']));
+        $mystore = $stores->fetch();
     }
 ?>
 <!DOCTYPE html>
@@ -20,7 +23,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-
+    <style>
+        p, span, h1, h2, h3, h4, h5, h6, a, button, input{
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "San Francisco", "Segoe UI", Roboto, "Helvetica Neue", sans-serif !important;
+        }
+    </style>
     <!-- <link rel="stylesheet" href="https://web.archive.org/web/20240801001458cs_/https://cdn.shopify.com/shopifycloud/brochure-iii/production/assets/home-CcMpCWNw.css" /> -->
 </head>
 
@@ -44,11 +51,11 @@
     <div class="flex flex-1 overflow-hidden rounded-t-lg ">
         <div class="hidden md:flex md:flex-shrink-0">
             <div class="flex flex-col w-64">
-                <div class="flex flex-col h-0 flex-1 bg-white border-r border-gray-200">
+                <div class="flex flex-col h-0 flex-1 bg-[#ebebeb] border-r border-gray-200">
                     <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
                         <nav class="flex-1 px-2 space-y-1">
                             <a href="#" class="bg-gray-100 text-gray-900 group flex items-center px-4 py-2 text-sm font-medium rounded-md">
-                                <i class="fas fa-home mr-3 text-gray-500"></i>
+                                <i class="fas fa-home mr-3 text-gray-900"></i>
                                 Dashboard
                             </a>
                             <a href="#" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-4 py-2 text-sm font-medium rounded-md">
@@ -67,6 +74,21 @@
                                 <i class="fas fa-chart-line mr-3 text-gray-400"></i>
                                 Analyses
                             </a>
+                            <?php 
+                                if($stores->rowCount() > 0){
+                            ?>
+                                <h1 class="text-gray-500 w-full font-[550]">Boutiques</h1>
+                                <a href="costumize.php" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-4 py-2 text-sm font-medium rounded-md">
+                                    <i class="fa-solid fa-store mr-3 text-gray-400"></i>
+                                    <?=$mystore['name']?>
+                                </a>
+                            <?php } else {?>
+                                <h1 class="text-gray-500 w-full font-[550]">Boutiques</h1>
+                                <a href="creerStore.php" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-4 py-2 text-sm font-medium rounded-md">
+                                    <i class="fa-solid fa-store mr-3 text-gray-400"></i>
+                                    Ajouter une boutique
+                                </a>
+                            <?php }?>
                         </nav>
                     </div>
                     <div class="flex-shrink-0 flex border-gray-200 p-2">
@@ -81,9 +103,7 @@
             </div>
         </div>
         <?php 
-            $stores = $connexion->prepare('SELECT * FROM stores WHERE user_id = ?');
-            $stores->execute(array($userdata['id']));
-            $mystore = $stores->fetch();
+            
             if($stores->rowCount() > 0){
         ?>
         <main id="dashboard" class="h-screen p-8 w-full bg-gray-100">
@@ -137,8 +157,6 @@
         </main>
         <?php };?>
     </div>
-    
-
 </body>
 
 </html>

@@ -6,11 +6,14 @@
         $data = $connexion->prepare('SELECT * FROM users WHERE session_ID = ?');
         $data->execute(array($_COOKIE['user_id']));
         $userdata = $data->fetch();
+        $stores = $connexion->prepare('SELECT * FROM stores WHERE user_id = ?');
+        $stores->execute(array($userdata['id']));
+        $mystore = $stores->fetch();
     }
     if(isset($_POST['store_name'])){
         $name = $_POST['store_name'];
         $description = $_POST['store_description'];
-        $logo_url = '';
+        $logo_url = 'https://cdn.iconscout.com/icon/free/png-256/free-shopify-logo-icon-download-in-svg-png-gif-file-formats--online-shopping-brand-logos-pack-icons-226579.png?f=webp&w=256';
         if (isset($_FILES['store_logo'])) {
             $logo_url = "images/".$_FILES['store_logo']['name'];
             move_uploaded_file($_FILES['store_logo']['tmp_name'], $logo_url);
@@ -29,8 +32,8 @@
         $req = $connexion->prepare('INSERT INTO stores(user_id, name, description, logo_url, domain) VALUES(?,?,?,?,?)');
         $req->execute(array($userdata['id'],$name, $description, $logo_url, $domain));
         $store_id = $connexion->lastInsertId();
-        $req2 = $connexion->prepare('INSERT INTO store_infos(store_id) VALUES(?)');
-        $req2->execute(array($store_id));
+        $req2 = $connexion->prepare('INSERT INTO store_infos(store_id, address, phone, email) VALUES(?,?,?,?)');
+        $req2->execute(array($store_id, $_POST['store_address'], $_POST['store_phone'], $_POST['store_email']));
         $store_folder = "../../stores/".$domain;
         if (!file_exists($store_folder)) {
             mkdir($store_folder, 0777, true);
@@ -85,10 +88,10 @@
     <div class="flex flex-1 overflow-hidden rounded-t-lg ">
         <div class="hidden md:flex md:flex-shrink-0">
             <div class="flex flex-col w-64">
-                <div class="flex flex-col h-0 flex-1 bg-white border-r border-gray-200">
+                <div class="flex flex-col h-0 flex-1 bg-[#ebebeb] border-r border-gray-200">
                     <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
                         <nav class="flex-1 px-2 space-y-1">
-                            <a href="index.php" class="bg-gray-100 text-gray-900 group flex items-center px-4 py-2 text-sm font-medium rounded-md">
+                            <a href="index.php" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-4 py-2 text-sm font-medium rounded-md">
                                 <i class="fas fa-home mr-3 text-gray-500"></i>
                                 Dashboard
                             </a>
@@ -108,6 +111,21 @@
                                 <i class="fas fa-chart-line mr-3 text-gray-400"></i>
                                 Analyses
                             </a>
+                            <?php 
+                                if($stores->rowCount() > 0){
+                            ?>
+                                <h1 class="text-gray-500 w-full font-[550]">Boutiques</h1>
+                                <a href="costumize.php" class="bg-gray-100 text-gray-900 group flex items-center px-4 py-2 text-sm font-medium rounded-md">
+                                    <i class="fa-solid fa-store mr-3 text-gray-900"></i>
+                                    <?=$mystore['name']?>
+                                </a>
+                            <?php } else {?>
+                                <h1 class="text-gray-500 w-full font-[550]">Boutiques</h1>
+                                <a href="creerStore.php" class="bg-gray-100 text-gray-900 group flex items-center px-4 py-2 text-sm font-medium rounded-md">
+                                    <i class="fa-solid fa-store mr-3 text-gray-900"></i>
+                                    Ajouter une boutique
+                                </a>
+                            <?php }?>
                         </nav>
                     </div>
                     <div class="flex-shrink-0 flex border-gray-200 p-2">
@@ -148,13 +166,33 @@
                     <label for="store_domain" class="block text-sm font-medium text-gray-700">Domaine personnalisé</label>
                     <div class="mt-1 flex rounded-md shadow-sm">
                     <span class="inline-flex items-center px-3 py-2 border border-r-0 border-gray-300 bg-gray-50 text-gray-500 rounded-l-md">
-                            forsastore.com/store/
+                            forsastore.free.nf/store/
                         </span>
                         <input type="text" name="store_domain" id="store_domain"
                             class="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             placeholder="votre-boutique" oninput="replaceSpaces()">
                         
                     </div>
+                </div>
+                <div>
+                    <label for="store_address" class="block text-sm font-medium text-gray-700">Adresse</label>
+                    <textarea name="store_address" id="store_address" rows="2"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Entrez l'adresse de votre boutique..."></textarea>
+                </div>
+
+                <div>
+                    <label for="store_email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" name="store_email" id="store_email"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="contact@votre-boutique.com">
+                </div>
+
+                <div>
+                    <label for="store_phone" class="block text-sm font-medium text-gray-700">Téléphone</label>
+                    <input type="tel" name="store_phone" id="store_phone"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="+212 6XX-XXXXXX">
                 </div>
 
                 <div>
